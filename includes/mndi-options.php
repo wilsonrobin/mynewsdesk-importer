@@ -12,7 +12,6 @@ function load_carbon_fields() {
 
 function create_options_page() {
     Container::make( 'theme_options', __( 'MyNewDesk Importer', 'mndi' ) ) ->add_fields( array(
-        // Field::make( 'text', 'crb_facebook_url', __( 'Facebook URL' ) ),
-        // Field::make( 'textarea', 'crb_footer_text', __( 'Footer Text' ) )
+        Field::make( 'text', 'mndi_api_key', __( 'MyNewsDesk API Key' ) ),
     ) );
 }

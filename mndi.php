@@ -24,8 +24,10 @@ class Mndi {
 	}
 
 	public function initialize() {
-		include_once MNDI_PATH . 'includes/utils.php';
-		include_once MNDI_PATH . 'includes/options.php';
+		include_once MNDI_PATH . 'includes/mndi-options.php';
+		include_once MNDI_PATH . 'includes/mndi-utils.php';
+		include_once MNDI_PATH . 'includes/mndi-posttype.php';
+		include_once MNDI_PATH . 'includes/mndi-connector.php';
 	}
 }
 
