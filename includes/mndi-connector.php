@@ -1,10 +1,8 @@
 <?php
 
-add_action( 'init', 'import' );
-function import() {
-    if ( !isset($_GET['import']) ) {
-        return;
-    }
+//add_action( 'mndi_run_import', 'mndi_import_articles' );
+add_action( 'init', 'mndi_import_articles' );
+function mndi_import_articles() {
 
     $mndi_key = get_mndi_option('mndi_api_key');
     $mndi_base_url = 'https://www.mynewsdesk.com/services/pressroom/list/' . $mndi_key . '?format=json';
@@ -36,7 +34,15 @@ function import() {
         update_post_meta( $wp_post, 'mndi_id', $mndi_article->id ?? '' );
         update_post_meta( $wp_post, 'mndi_url', $mndi_article->url ?? '' );
         update_post_meta( $wp_post, 'mndi_updated', $mndi_article->updated_at->text ?? '' );
-        update_post_meta( $wp_post, 'mndi_image', $mndi_article->image ?? '');
+        update_post_meta( $wp_post, 'mndi_data', json_encode($mndi_article));
+
+        if ( $mndi_article->image !== get_post_meta($wp_post, 'mndi_image', true ) ) {
+            update_post_meta( $wp_post, 'mndi_image', $mndi_article->image ?? '');
+
+            $attachment_id = upload_from_url($mndi_article->image);
+
+            set_post_thumbnail( $wp_post, $attachment_id );
+        }
 
         // Add category
         $category_term = wp_insert_term($mndi_article->type_of_media, 'mndi_category');
@@ -67,31 +73,12 @@ function find_existing_article($mndi_id) {
 
 function do_curl($mndi_url = '', $requestType = 'GET', $log = true)
 {
-    $curl = curl_init();
+    $result = wp_remote_get($mndi_url, array(
+        'method' => 'GET',
+        'headers' => 'Content-Type: application/json'
+    ));
 
-    curl_setopt_array($curl, [
-        CURLOPT_CUSTOMREQUEST => $requestType,
-        CURLOPT_URL => $mndi_url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json'
-        ]
-    ]);
+    $resultDecoded = json_decode($result['body']);
 
-    $result = curl_exec($curl);
-    $info = curl_getinfo($curl);
-    $resultDecoded = json_decode($result);
-    if ( $log ) {
-        echo "Connection to mndi endpoint " . $mndi_url . " responded with " . $info['http_code'] . "\n";
-    }
-
-    if ( $log ) {
-        if ($info['http_code'] != '200') {
-            echo "Connection to mndi failed. Exiting script.\n\n";
-            die();
-        }
-    }
     return $resultDecoded;
 }

@@ -39,6 +39,7 @@ function register_mndi_posttype() : void {
 		'supports' => [
 			'title',
 			'editor',
+			'thumbnail'
 		],
 		'hierarchical' => false,
 		'public' => true,
@@ -52,6 +53,7 @@ function register_mndi_posttype() : void {
 		'has_archive' => true,
 		'capability_type' => 'post',
 		'show_in_rest' => false,
+		'rewrite' => array('slug' => __('news', 'mndi')),
 	];
 	$args = apply_filters( 'mndi_news-args', $args );
 

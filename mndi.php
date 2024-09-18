@@ -28,6 +28,14 @@ class Mndi {
 		include_once MNDI_PATH . 'includes/mndi-utils.php';
 		include_once MNDI_PATH . 'includes/mndi-posttype.php';
 		include_once MNDI_PATH . 'includes/mndi-connector.php';
+		include_once MNDI_PATH . 'includes/mndi-meta-boxes.php';
+		include_once MNDI_PATH . 'includes/mndi-cronjob.php';
+	}
+}
+
+if ( !function_exists( 'get_mndi_data' ) ) {
+	function get_mndi_data($post_id) {
+		return get_post_meta($post_id, 'mndi_data', true);
 	}
 }
 

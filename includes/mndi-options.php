@@ -12,6 +12,13 @@ function load_carbon_fields() {
 
 function create_options_page() {
     Container::make( 'theme_options', __( 'MyNewDesk Importer', 'mndi' ) ) ->add_fields( array(
-        Field::make( 'text', 'mndi_api_key', __( 'MyNewsDesk API Key' ) ),
-    ) );
+        Field::make( 'text', 'mndi_api_key', __( 'MyNewsDesk API Key', 'mndi' ) ),
+        Field::make( 'select', 'mndi_recurrence', __( 'Select import recurrence', 'mndi') )->set_options( array(
+            'hourly' => 'Hourly',
+            'twicedaily' => 'Twice daily',
+            'daily' => 'Daily',
+            'weekly' => 'Weekly',
+            'none' => 'Do not import automaticly'
+        ))
+    ));
 }
