@@ -1,7 +1,7 @@
 <?php
 
 //add_action( 'mndi_run_import', 'mndi_import_articles' );
-add_action( 'init', 'mndi_import_articles' );
+//add_action( 'init', 'mndi_import_articles' );
 function mndi_import_articles() {
 
     $mndi_key = get_mndi_option('mndi_api_key');
@@ -36,11 +36,10 @@ function mndi_import_articles() {
         update_post_meta( $wp_post, 'mndi_updated', $mndi_article->updated_at->text ?? '' );
         update_post_meta( $wp_post, 'mndi_data', json_encode($mndi_article));
 
+        // Check if featured image have changed, if so... upload new featured image
         if ( $mndi_article->image !== get_post_meta($wp_post, 'mndi_image', true ) ) {
             update_post_meta( $wp_post, 'mndi_image', $mndi_article->image ?? '');
-
             $attachment_id = upload_from_url($mndi_article->image);
-
             set_post_thumbnail( $wp_post, $attachment_id );
         }
 

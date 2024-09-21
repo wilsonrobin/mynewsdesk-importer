@@ -60,8 +60,6 @@ function upload_from_url( $url, $title = null, $content = null, $alt = null ) {
 	
 	// Do the upload
 	$attachment_id = media_handle_sideload( $args, 0, null, $post_data );
-    
-    var_dump($attachment_id);
 	
 	// Clear temp file
 	wp_delete_file($tmp);

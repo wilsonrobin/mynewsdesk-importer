@@ -50,7 +50,7 @@ function register_mndi_posttype() : void {
 		'show_in_admin_bar' => true,
 		'show_in_nav_menus' => true,
 		'exclude_from_search' => false,
-		'has_archive' => true,
+		'has_archive' => (get_mndi_option('mndi_archive') === 'true' ? true : false),
 		'capability_type' => 'post',
 		'show_in_rest' => false,
 		'rewrite' => array('slug' => __('news', 'mndi')),
@@ -93,4 +93,4 @@ function register_mndi_posttype() : void {
 	);
 	register_taxonomy( 'mndi_category', array( 'mndi_news' ), $args );
 }
-add_action( 'init', 'register_mndi_posttype', 0 );
+add_action( 'init', 'register_mndi_posttype');
