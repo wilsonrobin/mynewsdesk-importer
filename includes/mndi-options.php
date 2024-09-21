@@ -35,19 +35,26 @@ function create_options_page() {
         Field::make( 'text', 'mndi_api_key', __( 'MyNewsDesk API Key', 'mndi' ) ),
         Field::make( 'html', 'mndi_invalid_message' )->set_html($invalid_html)->set_conditional_logic($key_is_invalid),
         Field::make( 'html', 'mndi_valid_message' )->set_html($valid_html)->set_conditional_logic($key_is_valid),
-        Field::make( 'select', 'mndi_recurrence', __( 'Select import recurrence', 'mndi') )->set_options( array(
+        Field::make( 'select', 'mndi_recurrence', __( 'Select cronjob recurrence', 'mndi') )->set_options( array(
             'hourly' => 'Hourly',
             'twicedaily' => 'Twice daily',
             'daily' => 'Daily',
             'weekly' => 'Weekly',
-            'none' => 'Do not import automaticly'
+            'none' => 'Disable cronjob'
         ))->set_conditional_logic($key_is_valid),
         Field::make( 'select', 'mndi_archive', __( 'Enable archive', 'mndi') )->set_options( array(
             'true' => 'Yes',
             'false' => 'No'
         ))->set_conditional_logic($key_is_valid),
+        Field::make( 'html', 'mndi_manual' )->set_html(get_manual_button())->set_conditional_logic($key_is_valid),
         Field::make( 'hidden', 'mndi_key_is_valid', '' ),
     ));
+}
+
+function get_manual_button() {
+    $nonce = wp_create_nonce("mndi_ajax_nonce");
+
+    return '<a class="button button-primary button-large" href="'.admin_url('admin-ajax.php?action=mdni_manual_import_action&nonce='.$nonce).'">Run import now</a>';
 }
 
 

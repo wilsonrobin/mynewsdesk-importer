@@ -50,6 +50,21 @@ function mndi_import_articles() {
     }
 }
 
+add_action( 'wp_ajax_nopriv_mdni_manual_import_action', 'mndi_manual_import' );
+add_action( 'wp_ajax_mdni_manual_import_action', 'mndi_manual_import' );
+function mndi_manual_import() {
+
+    if ( !wp_verify_nonce( $_REQUEST['nonce'], "mndi_ajax_nonce")) {
+        exit("No naughty business please");
+    }
+
+    mndi_import_articles();
+
+    header("Location: ".$_SERVER["HTTP_REFERER"]);
+
+    die();
+}
+
 function find_existing_article($mndi_id) {
     $matched = new WP_Query([
         'post_type' => 'mndi_news',
