@@ -1,6 +1,6 @@
 <?php
 
-function mndi_import_articles() {
+function mndi_import_articles($limit = 10) {
     $mndi_validation = get_mndi_option('mndi_key_is_valid');
     
     if ( $mndi_validation !== 'true' ) {
@@ -10,14 +10,15 @@ function mndi_import_articles() {
     $mndi_key = get_mndi_option('mndi_api_key');
     $mndi_base_url = 'https://www.mynewsdesk.com/services/pressroom/list/' . $mndi_key . '?format=json';
 
-    $mndi_pressrelease = do_curl($mndi_base_url . '&type_of_media=pressrelease&limit=2');
-    $mndi_news = do_curl($mndi_base_url . '&type_of_media=news&limit=2');
+    $mndi_pressrelease = do_curl($mndi_base_url . '&type_of_media=pressrelease&limit=' . $limit);
+    $mndi_news = do_curl($mndi_base_url . '&type_of_media=news&limit=' . $limit);
+    $mndi_posts = do_curl($mndi_base_url . '&type_of_media=blog_post&limit=' . $limit);
 
-    $mndi_articles = array_merge($mndi_pressrelease->items, $mndi_news->items);
+    $mndi_articles = array_merge($mndi_pressrelease->items, $mndi_news->items, $mndi_posts->items);
     
     foreach ($mndi_articles as $key => $mndi_article) {
         // Check if there is a published post in Wordpress with the same ID
-        $existing_post = find_existing_article($mndi_article->id);
+        $existing_post = find_existing_article($mndi_article);
 
         if ($existing_post->skip) {
             continue;
@@ -43,6 +44,11 @@ function mndi_import_articles() {
             continue;
         }
 
+        // Add category
+        $category_term = wp_insert_term($mndi_article->type_of_media, 'mndi_category');
+        $category_term_id = (!is_wp_error($category_term) ? $category_term['term_id'] : $category_term->error_data['term_exists']);
+        wp_set_post_terms($wp_post, $category_term_id, 'mndi_category', false);
+
         update_post_meta( $wp_post, 'mndi_id', $mndi_article->id ?? '' );
         update_post_meta( $wp_post, 'mndi_url', $mndi_article->url ?? '' );
         update_post_meta( $wp_post, 'mndi_updated', $mndi_article->updated_at->text ?? '' );
@@ -54,11 +60,6 @@ function mndi_import_articles() {
             $attachment_id = upload_from_url($mndi_article->image);
             set_post_thumbnail( $wp_post, $attachment_id );
         }
-
-        // Add category
-        $category_term = wp_insert_term($mndi_article->type_of_media, 'mndi_category');
-        $category_term_id = (!is_wp_error($category_term) ? $category_term['term_id'] : $category_term->error_data['term_exists']);
-        wp_set_post_terms($wp_post, $category_term_id, 'mndi_category', false);
     }
 }
 
@@ -77,28 +78,30 @@ function mndi_manual_import() {
     die();
 }
 
-function find_existing_article($mndi_id) {
+function find_existing_article($mndi_article) {
     $matched = new WP_Query([
-        'post_type' => 'news',
+        'post_type' => 'mndi_news',
         'posts_per_page' => 1,
         'meta_query' => [
             [
-                'key' => 'mnd_id',
-                'value' => $mnd_article->id,
+                'key' => 'mndi_id',
+                'value' => $mndi_article->id,
                 'compare' => '=',
             ]
         ]
     ]);
      
     if ( $matched->post_count > 0 ) {
-        $updated = strtotime(get_field('mnd_updated', $matched->posts[0]->ID)); // Get last updated date
-        $skip = ($updated >= strtotime($mnd_article->updated_at->text)); // Check if new post has a new updates
+        
+        $updated = strtotime(get_post_meta($matched->posts[0]->ID, 'mndi_updated', true)); // Get last updated date
+        $skip = ($updated >= strtotime($mndi_article->updated_at->text)); // Check if new post has a new updates
         
         return (object)[
             'id' => $matched->posts[0]->ID,
             'skip' => $skip,
         ];
-    } else { // No exisisting post found
+    } else {
+        // No exisisting post found
         return (object)[
             'id' => '',
             'skip' => false
