@@ -46,7 +46,7 @@ function mndi_import_articles() {
         update_post_meta( $wp_post, 'mndi_id', $mndi_article->id ?? '' );
         update_post_meta( $wp_post, 'mndi_url', $mndi_article->url ?? '' );
         update_post_meta( $wp_post, 'mndi_updated', $mndi_article->updated_at->text ?? '' );
-        update_post_meta( $wp_post, 'mndi_data', json_encode($mndi_article));
+        update_post_meta( $wp_post, 'mndi_data', $mndi_article);
 
         // Check if featured image have changed, if so... upload new featured image
         if ( $mndi_article->image !== get_post_meta($wp_post, 'mndi_image', true ) ) {

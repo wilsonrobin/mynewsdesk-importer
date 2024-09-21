@@ -28,7 +28,7 @@ function display_mndi_meta_data($post) {
 		</a></p>
 
 		<p><b class="cf-field__label" for="mndi_url">MyNewsDesk full data</b>
-		Full data can be fetched by calling get_mndi_data($id);</p>
+		Full post data can be fetched with <br><pre>$mndi->get_post_data();</pre></p>
 	</div>
 	<?php
 }
