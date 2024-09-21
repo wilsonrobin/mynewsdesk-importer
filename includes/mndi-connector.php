@@ -1,8 +1,11 @@
 <?php
 
-//add_action( 'mndi_run_import', 'mndi_import_articles' );
-//add_action( 'init', 'mndi_import_articles' );
 function mndi_import_articles() {
+    $mndi_validation = get_mndi_option('mndi_key_is_valid');
+    
+    if ( $mndi_validation !== 'true' ) {
+        return;
+    }
 
     $mndi_key = get_mndi_option('mndi_api_key');
     $mndi_base_url = 'https://www.mynewsdesk.com/services/pressroom/list/' . $mndi_key . '?format=json';
@@ -14,11 +17,15 @@ function mndi_import_articles() {
     
     foreach ($mndi_articles as $key => $mndi_article) {
         // Check if there is a published post in Wordpress with the same ID
-        $existing_id = find_existing_article($mndi_article->id);
+        $existing_post = find_existing_article($mndi_article->id);
+
+        if ($existing_post->skip) {
+            continue;
+        }
 
         // Setup post object
         $post_object = [ 
-            'ID' => $existing_id,
+            'ID' => $existing_post->id,
             'post_title'    => $mndi_article->header,
             'post_content'  => $mndi_article->body,
             'post_excerpt'  => $mndi_article->summary ?? '',
@@ -30,6 +37,11 @@ function mndi_import_articles() {
         
         // Insert or update post
         $wp_post = wp_insert_post($post_object);
+        
+        if ( !$wp_post ) {
+            // Skip if insert post failed.
+            continue;
+        }
 
         update_post_meta( $wp_post, 'mndi_id', $mndi_article->id ?? '' );
         update_post_meta( $wp_post, 'mndi_url', $mndi_article->url ?? '' );
@@ -67,21 +79,30 @@ function mndi_manual_import() {
 
 function find_existing_article($mndi_id) {
     $matched = new WP_Query([
-        'post_type' => 'mndi_news',
+        'post_type' => 'news',
         'posts_per_page' => 1,
         'meta_query' => [
             [
-                'key' => 'mndi_id',
-                'value' => $mndi_id,
+                'key' => 'mnd_id',
+                'value' => $mnd_article->id,
                 'compare' => '=',
             ]
         ]
     ]);
      
     if ( $matched->post_count > 0 ) {
-        return $matched->posts[0]->ID;
-    } else {
-        return '';
+        $updated = strtotime(get_field('mnd_updated', $matched->posts[0]->ID)); // Get last updated date
+        $skip = ($updated >= strtotime($mnd_article->updated_at->text)); // Check if new post has a new updates
+        
+        return (object)[
+            'id' => $matched->posts[0]->ID,
+            'skip' => $skip,
+        ];
+    } else { // No exisisting post found
+        return (object)[
+            'id' => '',
+            'skip' => false
+        ];
     }
 }
 

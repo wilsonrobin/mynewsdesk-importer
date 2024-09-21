@@ -17,8 +17,8 @@ function load_carbon_fields() {
 function create_options_page() {
     $key_is_invalid = array(array(
         'field' => 'mndi_key_is_valid',
-        'value' => 'true',
-        'compare' => '!='
+        'value' => 'false',
+        'compare' => '='
     ));
     $invalid_html = '<div style="display: inline-block; background: #cc4f4f; border-radius: 4px; color: white; padding: 7px 12px 8px; line-height: 1;">Api key is invalid</div>';
 
@@ -32,9 +32,9 @@ function create_options_page() {
     Container::make( 'theme_options', __( 'MyNewDesk Importer', 'mndi' ) )
     ->set_page_parent( 'options-general.php' )
     ->add_fields( array(
-        Field::make( 'text', 'mndi_api_key', __( 'MyNewsDesk API Key', 'mndi' ) ),
         Field::make( 'html', 'mndi_invalid_message' )->set_html($invalid_html)->set_conditional_logic($key_is_invalid),
         Field::make( 'html', 'mndi_valid_message' )->set_html($valid_html)->set_conditional_logic($key_is_valid),
+        Field::make( 'text', 'mndi_api_key', __( 'MyNewsDesk API Key', 'mndi' ) ),
         Field::make( 'select', 'mndi_recurrence', __( 'Select cronjob recurrence', 'mndi') )->set_options( array(
             'hourly' => 'Hourly',
             'twicedaily' => 'Twice daily',
